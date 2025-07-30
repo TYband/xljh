@@ -2,8 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const datetimeDisplay = document.getElementById('datetime-display');
     const trainingPlanDisplay = document.getElementById('training-plan-display');
 
-    // 训练计划数据（直接从您提供的文本中提取并结构化）
-    // 注意：这里手动解析和结构化了您的文本，未来如果计划很复杂，可以考虑更健壮的数据格式如 JSON。
+    // 训练计划数据（保持不变）
     const trainingPlans = {
         '星期一': {
             title: '胸部 + 肩前束训练',
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             exercises: [
                 { name: '史密斯架深蹲 (Smith Machine Squat)', sets: '3-4组', reps: '8-12次', notes: '技巧：史密斯架提供固定轨迹，有助于初学者掌握深蹲模式。保持核心收紧，膝盖与脚尖方向一致，下蹲至大腿与地面平行或稍低，感受臀部和大腿发力。TFCC注意：史密斯架深蹲手腕承重较小，但仍需注意握杠姿势，保持手腕中立位。' },
                 { name: '固定器械：腿举机 (Leg Press Machine)', sets: '3组', reps: '10-15次', notes: '技巧：调整座椅，确保膝盖不超过脚尖。推起重量时感受大腿和臀部发力。固定轨迹，非常安全高效。TFCC注意：此动作不涉及手腕，非常安全。' },
-                { name: '史密斯架臀冲 (Smith Machine Glute Bridge/Hip Thrust)', sets: '3组', reps: '10-15次', notes: '技巧：坐在史密斯架下方，杠铃置于髋部，双脚踩实地面。臀部发力向上顶起杠铃，感受臀部强烈收缩。这是孤立臀部的绝佳动作。TFCC注意：杠铃通常用泡沫垫包裹，手握杠铃只是为了稳定，对手腕压力很小。' },
+                { name: '史密斯架臀冲 (Smith Machine Glute Bridge/Hip Thrust)', sets: '3组', reps: '10-15次', notes: '技巧：坐在史密斯架下方，杠铃置于髋部，双脚踩实地面，臀部发力向上顶起杠铃，感受臀部强烈收缩。这是孤立臀部的绝佳动作。TFCC注意：杠铃通常用泡沫垫包裹，手握杠铃只是为了稳定，对手腕压力很小。' },
                 { name: '固定器械：腿屈伸 (Leg Extension Machine)', sets: '3组', reps: '12-15次', notes: '技巧：调整膝盖对齐器械轴心。小腿向上踢起，感受大腿前侧（股四头肌）收缩。孤立训练大腿前侧。TFCC注意：不涉及手腕。' },
                 { name: '自由器械：哑铃锤式弯举 (Dumbbell Hammer Curls)', sets: '3组', reps: '10-15次', notes: '重量建议：起始尝试每只手 2kg-4kg 哑铃。技巧：站立或坐姿，双手各持一哑铃，掌心相对。向上弯举哑铃，感受二头肌和肱肌收缩。TFCC注意：此动作对手腕压力小于杠铃弯举，对TFCC更友好。保持手腕中立。' },
                 { name: '固定器械：绳索下压 (Cable Triceps Pushdown)', sets: '3组', reps: '10-15次', notes: '技巧：使用直杆或V形把手，肘部固定在身体两侧，向下压动把手，感受三头肌收缩。TFCC注意：绳索训练对手腕的锁定要求不高，压力相对较小。可选择绳索把手（对TFCC最友好）。' },
@@ -76,31 +75,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const options = {
             timeZone: 'Asia/Shanghai',
             year: 'numeric',
-            month: 'long',
+            month: 'numeric', // 使用 'numeric' 确保月份是数字，例如 '7'
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            weekday: 'long'
+            hour12: false // 使用24小时制
         };
-        const formatter = new Intl.DateTimeFormat('zh-CN', options);
-        const parts = formatter.formatToParts(now);
 
-        let date = '';
-        let time = '';
-        let weekday = '';
+        // 使用 Intl.DateTimeFormat().format() 直接获取完整格式化的日期时间字符串
+        // 例如：2025/7/30 10:25:20
+        const fullDateTime = new Intl.DateTimeFormat('zh-CN', options).format(now);
 
-        for (const part of parts) {
-            if (part.type === 'year' || part.type === 'month' || part.type === 'day') {
-                date += part.value;
-            } else if (part.type === 'hour' || part.type === 'minute' || part.type === 'second' || part.type === 'literal') {
-                time += part.value;
-            } else if (part.type === 'weekday') {
-                weekday = part.value;
-            }
-        }
+        // 另外获取星期几，因为 fullDateTime 不包含“星期几”
+        const weekdayOptions = { timeZone: 'Asia/Shanghai', weekday: 'long' };
+        const weekday = new Intl.DateTimeFormat('zh-CN', weekdayOptions).format(now);
+        
+        // 重新格式化日期部分，以实现“2025年7月30日”
+        // 由于 fullDateTime 现在是 '2025/7/30 10:25:20' 格式，我们可以再次处理
+        const dateParts = fullDateTime.split(' ')[0].split('/'); // ['2025', '7', '30']
+        const year = dateParts[0];
+        const month = dateParts[1];
+        const day = dateParts[2];
+        const time = fullDateTime.split(' ')[1];
+
+        const formattedDateDisplay = `${year}年${month}月${day}日 ${time}`;
+
+
         datetimeDisplay.innerHTML = `
-            <p><strong>${date} ${time}</strong></p>
+            <p><strong>${formattedDateDisplay}</strong></p>
             <p>今天是：<strong>${weekday}</strong></p>
         `;
 
@@ -108,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         displayTrainingPlan(weekday);
     }
 
+    // displayTrainingPlan 函数保持不变，因为它依赖于正确的 weekday 字符串
     function displayTrainingPlan(weekday) {
         let dayKey;
         // 将中文星期转换为内部使用的键名
@@ -147,6 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化显示
     updateDateTime();
-    // 每秒更新时间，保持“丝滑”体验
+    // 每秒更新时间
     setInterval(updateDateTime, 1000);
 });
